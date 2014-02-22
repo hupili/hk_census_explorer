@@ -44,6 +44,30 @@
   </div>
 </div>
 
+<style type="text/css">
+  #chart div {
+    font: 12px sans-serif;
+    background-color: steelblue;
+    text-align: right;
+    padding: 0px;
+    margin: 4px;
+    color: white;
+  }
+  #chart .bar2 {
+    margin: 0;
+    padding: 0;
+    background-color: red;
+  }
+</style>
+
+<div class="row">
+  <div class="col-md-4">
+    <div id="chart" style="">
+    	chart
+    </div>
+  </div>
+</div>
+
 <div class="row">
   <div class="col-md-4">
     <button ng-click="plot()">Plot</button>
@@ -55,5 +79,5 @@
 
   <pre>
     {{ response}}
-    </pre>
+  </pre>
 </div>
