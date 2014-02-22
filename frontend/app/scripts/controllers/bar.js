@@ -1,8 +1,8 @@
 'use strict';
 
 angular.module('frontendApp')
-  .controller('BarCtrl', ['$scope', 'GeoMappings', '$http', 'CensusAPI', 'Indicators', 'promiseTracker',
-                           function ($scope, GeoMappings, $http, CensusAPI, Indicators, promiseTracker) {
+  .controller('BarCtrl', ['$scope', '$http', 'CensusAPI', 'Indicators', 'promiseTracker',
+                           function ($scope, $http, CensusAPI, Indicators, promiseTracker) {
 
     $scope.refresh = function(){
       console.log('indicator:');
@@ -20,50 +20,29 @@ angular.module('frontendApp')
       console.log("query filters:");
       console.log(query._filters);
 
-      var  config= _medianMonthlyIncomeConfig;
-      var  parser= _medianMonthlyIncomeParser;
       var promise = query.fetch().then(function(response) {
         console.log('response:');
         console.log(response);
         $scope.response = response;
+
+        var data = [
+              [{'value': 4, 'label': 'Chinese'}, {'value': 5, 'label': 'Chinese'}],
+              [{'value': 6, 'label': 'Jap'}, {'value': 7, 'label': 'Jap'}],
+              [{'value': 8, 'label': 'Ind'}, {'value': 9, 'label': 'Ind'}]
+          ];
+        var chartdiv = d3.select("#chart")
+            .selectAll("div")
+            .data(data)
+            .enter()
+              .append("div")
+                .attr("class", "bar1")
+                .style("width", function(d) { return d[0].value * 30 + "px"; })
+                .text(function(d) { return d[0].label; })
+               .append("div")
+                .attr("class", "bar2")
+                .style("width", function(d) { return d[1].value * 30 + "px"; })
+                .text(function(d) { return d[1].label; });
       });
     };
 
-    /*
-     * Median / mode income related indicators
-     */
-
-    // 14 categories total
-    var _medianMonthlyIncomeColors = _.clone(colorbrewer.Reds['7']).reverse().concat(colorbrewer.Greens['7']);
-    var _medianMonthlyIncomeConfig = {
-      colors: _medianMonthlyIncomeColors,
-      valueVar: 'row'
-    };
-    var _medianMonthlyIncomeParser = function(data) {
-      var d = CensusAPI.joinGroups(data.groups, 'area');
-      var scale = d3.scale.ordinal().domain(data.options.row).range(d3.range(14));
-      _medianMonthlyIncomeConfig.scale = scale;
-      return d;
-    };
-
-    $scope.indicators = [
-      {
-        name: 'Median monthly income',
-      },
-      {
-        name: 'Most common monthly income',
-        params: _.extend(_.clone(Indicators.queries.householdIncome, true), Indicators.queries.areaModeModifier),
-        config: _medianMonthlyIncomeConfig,
-        parser: _medianMonthlyIncomeParser
-      },
-      {
-        name: 'Median housing rental amount',
-        params: _.extend(_.clone(Indicators.queries.householdRent, true), Indicators.queries.areaModeModifier),
-        config: _medianMonthlyIncomeConfig,
-        parser: _medianMonthlyIncomeParser
-      }
-    ];
-
-    $scope.mapLevel = 'ca';
-    $scope.theData = $scope.areaData;
   }]);
