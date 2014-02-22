@@ -4,66 +4,66 @@ angular.module('frontendApp')
   .controller('BarCtrl', ['$scope', 'GeoMappings', '$http', 'CensusAPI', 'Indicators', 'promiseTracker',
                            function ($scope, GeoMappings, $http, CensusAPI, Indicators, promiseTracker) {
 
-    $scope.refresh = function(){
-      console.log('indicator:');
+  var _defaultModel = {skip: 0, count: 5};
+  $scope.model = _.clone(_defaultModel);
+  // Available options
+  $scope.options = {};
 
-      var params={
-          'return': 'groups',
-          'groupby': 'area',
-          'area': ['a01', 'a02'],
-          'projector': 'value,row',
-          'table': 0,
-          'column': 'tab0_both',
-      } ;//_.extend(_.clone(Indicators.queries.householdIncome, true), Indicators.queries.areaMedianModifier);
-      var query = new CensusAPI.Query(params);
+  // Build the query from the model filters
+  $scope.refresh = function() {
+    var q = new CensusAPI.Query($scope.model);
+    q.addParam('return', 'options,data');
+    q.addParam('projector', 'row,value');
+    q.addParam('groupby', 'area');
 
-      console.log("query filters:");
-      console.log(query._filters);
+    console.log('model:');
+    console.log($scope.model);
 
-      var  config= _medianMonthlyIncomeConfig;
-      var  parser= _medianMonthlyIncomeParser;
-      var promise = query.fetch().then(function(response) {
-        console.log('response:');
-        console.log(response);
-        $scope.response = response;
-      });
-    };
+    q.fetch().then(function(response) {
+      $scope.options = response.options;
+      // Sort the areas and regions
+      $scope.options.area = _.sortBy($scope.options.area);
+      $scope.options.district = _.sortBy($scope.options.district);
 
-    /*
-     * Median / mode income related indicators
-     */
+      console.log('response:');
+      console.log(response);
+      $scope.response = response;
+    });
+  };
 
-    // 14 categories total
-    var _medianMonthlyIncomeColors = _.clone(colorbrewer.Reds['7']).reverse().concat(colorbrewer.Greens['7']);
-    var _medianMonthlyIncomeConfig = {
-      colors: _medianMonthlyIncomeColors,
-      valueVar: 'row'
-    };
-    var _medianMonthlyIncomeParser = function(data) {
-      var d = CensusAPI.joinGroups(data.groups, 'area');
-      var scale = d3.scale.ordinal().domain(data.options.row).range(d3.range(14));
-      _medianMonthlyIncomeConfig.scale = scale;
-      return d;
-    };
+  // Clear all selections, or the selection for a single model field
+  $scope.clear = function(field) {
+    if (_.isUndefined(field)) {
+      $scope.model = _.clone(_defaultModel);
+    } else {
+      delete $scope.model[field];
+    }
+    $scope.refresh();
+  };
 
-    $scope.indicators = [
-      {
-        name: 'Median monthly income',
-      },
-      {
-        name: 'Most common monthly income',
-        params: _.extend(_.clone(Indicators.queries.householdIncome, true), Indicators.queries.areaModeModifier),
-        config: _medianMonthlyIncomeConfig,
-        parser: _medianMonthlyIncomeParser
-      },
-      {
-        name: 'Median housing rental amount',
-        params: _.extend(_.clone(Indicators.queries.householdRent, true), Indicators.queries.areaModeModifier),
-        config: _medianMonthlyIncomeConfig,
-        parser: _medianMonthlyIncomeParser
-      }
-    ];
+  $scope.plot = function() {
+    var q = new CensusAPI.Query($scope.model);
+    q.addParam('return', 'groups,options');
+    q.addParam('projector', 'row,value');
+    q.addParam('groupby', 'area');
 
-    $scope.mapLevel = 'ca';
-    $scope.theData = $scope.areaData;
+    console.log('model:');
+    console.log($scope.model);
+
+    q.fetch().then(function(response) {
+      $scope.options = response.options;
+      // Sort the areas and regions
+      $scope.options.area = _.sortBy($scope.options.area);
+      $scope.options.district = _.sortBy($scope.options.district);
+
+      console.log('response:');
+      console.log(response);
+      $scope.response = response;
+    });
+  };
+
+  //$scope.refresh();
+
+  console.log('here');
+
   }]);
